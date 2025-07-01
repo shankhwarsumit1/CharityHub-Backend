@@ -3,7 +3,6 @@ const {
     validateProjectUpdateData
 } = require('../utils/validator');
 const { UserModel,CharityProjectModel} = require('../models');
-const { where } = require('sequelize');
 
 const projectRegistration = async (req, res) => {
     try {
@@ -98,7 +97,7 @@ const updateProject = async(req,res)=>{
        
         //validating owner
         if(project.userId!==loggedInUser.id){
-            return res.status(401).json({message:'unothorized'});
+            return res.status(401).json({message:'unothorized to update this project'});
         }
 
 

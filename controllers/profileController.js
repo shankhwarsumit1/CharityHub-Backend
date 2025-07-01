@@ -1,5 +1,7 @@
 const bcrypt = require('bcrypt');
 const validator = require('validator');
+const {validatePageInfo,validateRange,validateStatus} = require('../utils/validator');
+const {filterByRange}  = require('../utils/filter');
 const {CharityProjectModel,DonationModal}=require('../models/index')
 
 const EditProfile = async(req,res)=>{
@@ -67,4 +69,130 @@ const getProfile = async(req,res)=>{
     }
 }
 
-module.exports={EditProfile,getProfile}
+const getMyDonations = async(req,res)=>{
+    try {const donor = req.user;
+         const donorId = req.user.id;
+         const page = parseInt(req.query.page);
+         const limit = parseInt(req.query.limit);
+         const range = req.query.range;
+
+         if(donor.role!=='donor'){
+            return res.status(404).json({
+                message: "you are not donor"
+            });
+         }
+         validatePageInfo(page,limit);
+         const offset = (page-1)*limit;
+
+          const where = {};
+          where.userId=donorId;
+        
+        if (range) {
+            validateRange(range);
+            filterByRange(where, range);
+        }
+
+
+         const donations = await DonationModal.findAndCountAll({
+            limit,offset,
+            where,
+            include:[{
+                model:CharityProjectModel,
+                attributes:['projectName','about','fundGoal','fundsRecieved']
+            }]
+         })
+         const totalItems = donations.count;
+         if(totalItems===0){
+             return res.status(404).json({
+                message: "no donations found"
+            });
+         }
+
+         const totalPages = Math.ceil(totalItems/limit);
+         const previousPage = page>1?page-1:null;
+         return res.status(200).json({
+            totalItems,
+            totalPages,
+            hasPreviousPage:page>1,
+            hasNextPage:page<totalPages,
+            previousPage,
+            content:donations.rows
+         })
+    }
+    catch(err){
+        console.log(err);
+        res.status(500).json({'ERROR':err.message});
+    }
+}
+
+const getMyProjects = async (req, res) => {
+    try {
+        const {
+            page,
+            range,
+            status,
+            name } = req.query;
+        const user = req.user;
+         if(user.role!=='charity'){
+            return res.status(404).json({
+                message: "you are not charity"
+            });
+         };
+        const userId = req.user.id;
+        const pageNo = parseInt(page);
+        const limit = parseInt(req.query.limit);
+        validatePageInfo(pageNo, limit)
+        const offset = (pageNo - 1) * limit;
+        const where = {};
+        if (status) {
+            validateStatus(status);
+            where.status = status;
+        }
+
+        if (name) {
+            where.projectName = {
+                [Op.like]: `%${name}%`
+            };
+        }
+
+        if (range) {
+            validateRange(range);
+            filterByRange(where, range);
+        }
+
+        if (userId) {
+            where.userId = userId;
+        }
+        const projects = await CharityProjectModel.findAndCountAll({
+            where,
+            limit,
+            offset,
+            attributes: ['id', 'projectName', 'status', 'fundGoal', 'about', 'beneficiaryName','fundsRecieved']
+        });
+        if (projects.count === 0) {
+            return res.status(404).json({
+                message: 'no project found'
+            });
+        }
+        const totalPages = Math.ceil(projects.count / limit);
+
+        res.status(200).json({
+            success: true,
+            data: {
+                'totalItems': projects.count,
+                'totalPages': totalPages,
+                'hasPreviousPage': pageNo > 1,
+                'previousPage': pageNo > 1 ? pageNo - 1 : null,
+                'limit': limit,
+                'currentPage': pageNo,
+                'content': projects.rows
+            }
+        });
+    } catch (err) {
+        console.log(err);
+        res.status(500).json({
+            "ERROR": err.message
+        });
+    }
+}
+module.exports={EditProfile,getProfile,getMyDonations,getMyProjects}

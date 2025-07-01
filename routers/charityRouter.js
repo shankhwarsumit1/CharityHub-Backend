@@ -7,4 +7,5 @@ router.post('/charity/registration',authenticate,charityController.projectRegist
 router.get('/charity/getProjectById/:projectId',authenticate,charityController.getProjectById);
 router.patch('/charity/updateProject/:projectId',authenticate,charityController.updateProject);
 
+
 module.exports= router;

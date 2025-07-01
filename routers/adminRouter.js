@@ -8,5 +8,6 @@ router.get('/admin/users',authenticate,authorizeAdmin,adminController.getAlluser
 router.get('/admin/getUser/:id',authenticate,authorizeAdmin,adminController.getUserById);
 router.get('/charityprojects',authenticate,adminController.getallProjects);
 router.patch('/admin/reviewProject/:projectId',authenticate,authorizeAdmin,adminController.reviewProject);
+router.get('/admin/getDonations/:donorId',authenticate,authorizeAdmin,adminController.getDonations)
 
 module.exports= router;

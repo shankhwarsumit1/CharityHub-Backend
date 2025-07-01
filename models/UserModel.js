@@ -51,8 +51,8 @@ const UserModel = sequelize.define('users', {
 
     },
     role:{
-       type:DataTypes.ENUM('donar','admin','charity'),
-       defaultValue:'donar',
+       type:DataTypes.ENUM('donor','admin','charity'),
+       defaultValue:'donor',
        allowNull:false
     },
     password:{

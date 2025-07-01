@@ -1,28 +1,25 @@
-const loginForm = document.getElementById('loginForm');
-
-loginForm.addEventListener('submit', async (e) => {
+document.getElementById('loginForm').addEventListener('submit', async (e) => {
     e.preventDefault();
-
     const email = document.getElementById('email').value;
     const password = document.getElementById('password').value;
+    const errorEl = document.getElementById('error');
+    const successEl = document.getElementById('success');
 
     try {
-        const response = await axios.post('http://localhost:3000/login', {
+        const response = await axios.post('http://127.0.0.1:3000/login', {
             email,
             password
         });
-
-        if (response.data.success) {            alert('Login successful');
-            const token = response.data.token;
-            localStorage.setItem('token', token); // Store token in localStorage
-            window.location.href='./project.html'; // Redirect to projects page on successful login
-            // Redirect or perform other actions
-
-        } else {
-            alert('Login failed');
-        }
+        const { token, userData } = response.data;
+        localStorage.setItem('token', token);
+        localStorage.setItem('user', JSON.stringify(userData));
+        successEl.textContent = response.data.message;
+        errorEl.textContent = '';
+        setTimeout(() => {
+            window.location.href = 'project.html';
+        }, 2000);
     } catch (error) {
-        console.error(error);
-        alert('Error logging in');
+        errorEl.textContent = error.response?.data?.message || 'Login failed';
+        successEl.textContent = '';
     }
 });

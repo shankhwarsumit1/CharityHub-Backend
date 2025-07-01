@@ -11,7 +11,7 @@ const validateSignupData = (req) => {
         password,
         role
     } = req.body;
-    const validRoles = ['donar', 'charity'];
+    const validRoles = ['donor', 'charity'];
     if (!name) {
         throw new Error('Name is not valid');
     } else if (!validator.isEmail(email)) {

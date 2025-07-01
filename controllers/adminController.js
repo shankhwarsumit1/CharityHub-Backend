@@ -96,7 +96,7 @@ const getUserById = async (req, res) => {
                 attributes: ['id','projectName', 'status', 'beneficiaryType', 'beneficiaryName', 'about', 'fundGoal','fundsRecieved']
             })
             data.charityProjects = charityProjects;
-        } else if (user.role === 'donar') {
+        } else if (user.role === 'donor') {
             const donations = await DonationModal.findAll({
                 where: {
                     userId: id
@@ -214,9 +214,66 @@ const reviewProject = async (req, res) => {
     }
 }
 
+const getDonations = async(req,res)=>{
+    try{
+         const {donorId}=req.params;
+         const range = req.query.range;
+         const page = parseInt(req.query.page);
+         const limit = parseInt(req.query.limit);
+         const donor = await UserModel.findByPk(donorId);
+     
+         if(!donor||donor.role!=='donor'){
+            return res.status(404).json({
+                message: "donor not found"
+            });
+         }
+         validatePageInfo(page,limit);
+         const offset = (page-1)*limit;
+         
+         const where = {};
+         where.userId=donorId;
+        
+        if (range) {
+            validateRange(range);
+            filterByRange(where, range);
+        }
+
+         const donations = await DonationModal.findAndCountAll({
+            where,
+            limit,offset,
+            include:[{
+                model:CharityProjectsModel,
+                attributes:['projectName','about','fundGoal','fundsRecieved']
+            }]
+         })
+         const totalItems = donations.count;
+         if(totalItems===0){
+             return res.status(404).json({
+                message: "no donations found"
+            });
+         }
+
+         const totalPages = Math.ceil(totalItems/limit);
+         const previousPage = page>1?page-1:null;
+         return res.status(200).json({
+            totalItems,
+            totalPages,
+            hasPreviousPage:page>1,
+            hasNextPage:page<totalPages,
+            previousPage,
+            content:donations.rows
+         })
+    }
+    catch(err){
+        console.log(err);
+        res.status(500).json({'ERROR':err.message});
+    }
+}
+
 module.exports = {
     getAllusersByRole,
     getUserById,
     getallProjects,
-    reviewProject
+    reviewProject,
+    getDonations
 };
