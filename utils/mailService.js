@@ -18,16 +18,17 @@ const sendMail =async(paymentDetails,status)=>{
             }
             });
 
-    const info = await transporter.sendMail({
+          await transporter.sendMail({
                 from:{
                     name:'SUMIT',
                     address:`<shankhwarsumit117@gmail.com>`
                 },
                 to : `${userEmail}`,
                 subject:"Donation",
-                text:`${name} your donation of ${amount} to '${projectName}' is ${status}`,
-                html:`<h1 style="color:green">${name} your donation of ${amount} to '${projectName}' is ${status}</h1>`
+                text:`${name} your donation of  INR:${amount}  to '${projectName}' is ${status}`,
+                html:`<h1 style="color:green">${name} your donation of INR:${amount} to '${projectName}' is ${status}</h1>`
             });
+
         }
         catch(err){
             console.log(err);

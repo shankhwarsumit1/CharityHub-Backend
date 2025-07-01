@@ -15,4 +15,14 @@ DonationModal.belongsTo(UserModel,{foreignKey:'userId'});
 UserModel.hasMany(PaymentModel,{foreignKey:'userId'});
 PaymentModel.belongsTo(UserModel,{foreignKey:'userId'});
 
+PaymentModel.hasOne(DonationModal,{
+    foreignKey:'orderId',
+    sourceKey:'orderId'
+});
+
+DonationModal.belongsTo(PaymentModel,{
+    foreignKey:'orderId',
+    targetKey:'orderId'
+});
+
 module.exports={UserModel,CharityProjectModel,DonationModal}

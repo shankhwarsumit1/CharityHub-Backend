@@ -99,7 +99,8 @@ const getMyDonations = async(req,res)=>{
             include:[{
                 model:CharityProjectModel,
                 attributes:['projectName','about','fundGoal','fundsRecieved']
-            }]
+            }],
+            order:[['createdAt','DESC']]
          })
          const totalItems = donations.count;
          if(totalItems===0){
@@ -195,4 +196,54 @@ const getMyProjects = async (req, res) => {
         });
     }
 }
-module.exports={EditProfile,getProfile,getMyDonations,getMyProjects}
+
+const downloadReceipt = async(req,res)=>{
+    try{
+          const {donationId} = req.params;
+          const user = req.user;
+
+         let donation = await DonationModal.findOne({
+            where:{id:donationId},
+            include:[
+                {
+                    model:CharityProjectModel,
+                    attributes:['projectName','beneficiaryName']
+                },   
+            ]
+          });
+          
+          if(!donation){
+            return res.status(404).json({'msg':'donation not found incorrect donation id'})};
+
+          if(donation.userId!==user.id){
+             return res.status(404).json({'msg':'userId is not matching of donation'});
+          }
+        
+          donation=donation.get({plain:true})
+          console.log(donation.charityProject);
+          
+          const charityProject = donation.charityProject;
+          const receiptText = `
+          CharityHub Donation Receipt
+            
+          Donor:${user.name}
+          Email:${user.email}
+          CharityProjectName:${charityProject.projectName}
+          BeneficiaryName:${charityProject.beneficiaryName}
+          Amount:₹${donation.amount}
+          Date:${donation.createdAt}
+          Order ID:${donation.orderId}
+          
+          Thank you for supporting our mission`
+
+          res.setHeader("Content-Disposition",`attachment; filename=receipt_${donation.id}`);
+          res.setHeader("content-Type","text/plain");
+          res.status(200).send(receiptText);
+    }
+    catch(err){
+        console.log(err);
+        res.status(500).json({'ERROR':err.message});
+    }
+}
+
+module.exports={EditProfile,getProfile,getMyDonations,getMyProjects,downloadReceipt};

@@ -7,5 +7,6 @@ router.patch('/profile/edit',authenticate,profileController.EditProfile);
 router.get('/profile',authenticate,profileController.getProfile);
 router.get('/getMyDonations',authenticate,profileController.getMyDonations)
 router.get('/getMyProjects',authenticate,profileController.getMyProjects);
+router.get('/getDonationReceipt/:donationId',authenticate,profileController.downloadReceipt);
 
-module.exports= router;
+module.exports= router;                          

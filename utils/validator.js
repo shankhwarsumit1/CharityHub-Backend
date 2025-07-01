@@ -1,6 +1,4 @@
-const {
-    INTEGER
-} = require('sequelize');
+
 const validator = require('validator');
 
 const validateSignupData = (req) => {
